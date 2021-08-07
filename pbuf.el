@@ -96,31 +96,39 @@
 
 (defun pbuf-do-start-process (&rest _)
   "Start process stored in `pbuf-process-start-command'"
+  (let ((inhibit-read-only t))
+    (delete-region (point-min) (point-max)))
   (when (and pbuf-process (process-live-p pbuf-process)) (kill-process pbuf-process))
-  (setq pbuf-process (funcall pbuf-start-process-function pbuf-process-name (current-buffer)))
-  (set-process-filter pbuf-process #'pbuf-process-filter))
+  (setq pbuf-line-count 0
+        pbuf-process (funcall pbuf-start-process-function pbuf-process-name (current-buffer)))
+  (set-process-filter pbuf-process #'pbuf-process-filter)
+  pbuf-process)
 
 (defun pbuf-start-process (name function)
   "Run process NAME in a pbuf buffer using the process returning FUNCTION.
 
 The function will be called with the name and the process buffer as arguments."
   (with-current-buffer (get-buffer-create name)
-    (let ((inhibit-read-only t))
-      (delete-region (point-min) (point-max)))
     (make-local-variable 'pbuf-max-line-count)
     (make-local-variable 'pbuf-pre-insert-functions)
+    (make-local-variable 'revert-buffer-function)
     (setq pbuf-start-process-function function
           pbuf-process-name name
-          pbuf-line-count 0
           revert-buffer-function #'pbuf-do-start-process
           buffer-read-only t)
     (pbuf-minor-mode t)
     (pbuf-do-start-process)))
 
+(defun pbuf-start-process-shell-command (name command)
+  "Run process NAME using shell COMMAND."
+  (pbuf-start-process name (lambda (name buffer) (start-process-shell-command name buffer command))))
+
 (defvar pbuf-minor-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "g") #'revert-buffer)
     (define-key map (kbd "q") #'bury-buffer)
+    (define-key map (kbd "<") #'beginning-of-buffer)
+    (define-key map (kbd ">") #'end-of-buffer)
     map)
   "Keymap for command `pbuf-minor-mode'.")
 
