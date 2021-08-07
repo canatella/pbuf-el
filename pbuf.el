@@ -38,7 +38,7 @@
 (defvar-local pbuf-process-name '() "The name of the process.")
 (defvar-local pbuf-process '() "The process associated to this buffer.")
 (defvar-local pbuf-line-count 0 "The line count in the current buffer.")
-(defvar pbuf-max-line-count 20 "The maximum number of lines in the buffer.")
+(defvar pbuf-max-line-count 2000 "The maximum number of lines in the buffer.")
 (defvar pbuf-pre-insert-functions '() "Abnormal hook to run before inserting a line. Called with the line as argument, it should return a string.")
 
 (defun pbuf-filter-output (line functions)
